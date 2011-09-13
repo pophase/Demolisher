@@ -13,10 +13,11 @@ public class HexTest extends JPanel {
     boolean showCenters  = false;
     boolean tipHigh      = false;
     boolean scaleDown    = false;
-    static boolean debug = false;   // main method switch -d
     boolean firstTime    = true;
     HexCell[] cells;
     double scale = 3/4.0;
+    Point mousePos = new Point(0,0);
+    
 
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -27,12 +28,11 @@ public class HexTest extends JPanel {
         double h = getHeight();
         double R = Math.min(w,h)/8;
         MIN_DIST = R/4;
-        if(debug && firstTime)
-            System.out.printf("w = %.1f  h = %.1f  R = %.1f%n", w, h, R);
         double delta = (1.0 - scale)/2;
         if(scaleDown) {
             // Draw everything smaller to see all the cells.
-            g2.translate(delta*w, delta*h);
+            //g2.translate(delta*w, delta*h);
+            g2.translate(mousePos.x, mousePos.y);
             g2.scale(scale, scale);
         }
         Rectangle r = getBounds();
@@ -64,18 +64,10 @@ public class HexTest extends JPanel {
     private void initHexCells(double w, double h, double R, Rectangle range) {
         Path2D.Double path = getPath(w/2, h/2, R);
         Rectangle2D bounds = path.getBounds2D();
-        if(debug && firstTime)
-            System.out.printf("bounds = [%.1f, %.1f, %.1f, %.1f]%n",
-                               bounds.getX(), bounds.getY(),
-                               bounds.getWidth(), bounds.getHeight());
         double radius = Math.min(bounds.getWidth(), bounds.getHeight());
-        if(debug && firstTime)
-            System.out.printf("radius = %f%n", radius);
         List<Point2D.Double> list =
                 getAllPoints(bounds.getCenterX(),
                              bounds.getCenterY(), radius, range);
-        if(debug && firstTime)
-            System.out.printf("list size = %d%n", list.size());
         cells = new HexCell[list.size()];
         // For HexCell to find the side that starts at zero degrees.
         double theta = tipHigh ? -Math.PI/6 : 0;
@@ -231,8 +223,6 @@ public class HexTest extends JPanel {
     }
 
     public static void main(String[] args) {
-        if(args.length > 0)
-            debug = args[0].equals("-d");
         HexTest test = new HexTest();
         JFrame f = new JFrame("click me");
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -241,7 +231,10 @@ public class HexTest extends JPanel {
         f.pack();
         f.setLocation(100,100);
         f.setVisible(true);
-        test.addMouseListener(test.switcher);
+        MausHandler mausHandler = test.new MausHandler();
+        test.addMouseListener(mausHandler);
+        test.addMouseMotionListener(mausHandler);
+        test.addMouseWheelListener(mausHandler);
         test.addComponentListener(test.resizeMonitor);
     }
 
@@ -251,7 +244,8 @@ public class HexTest extends JPanel {
         repaint();
     }
 
-    private MouseListener switcher = new MouseAdapter() {
+    private class MausHandler implements MouseListener, MouseMotionListener, MouseWheelListener {
+    	@Override
         public void mousePressed(MouseEvent e) {
             Point p = e.getPoint();
             if(scaleDown) {
@@ -269,8 +263,54 @@ public class HexTest extends JPanel {
             }
             repaint();
         }
-    };
 
+		@Override
+		public void mouseDragged(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseMoved(MouseEvent e) {
+			mousePos = e.getPoint();
+			System.out.println(mousePos.x + ", " + mousePos.y);
+		}
+		
+		@Override
+		public void mouseWheelMoved(MouseWheelEvent e) {
+			if (e.getWheelRotation() > 0)
+				scale *= 0.9;
+			else
+				scale *= 1.1;
+			System.out.println(scale);
+			repaint();
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+    };
+    
     private ComponentListener resizeMonitor = new ComponentAdapter() {
         public void componentResized(ComponentEvent e) {
             reset();
