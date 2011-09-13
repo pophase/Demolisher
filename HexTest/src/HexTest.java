@@ -12,11 +12,12 @@ public class HexTest extends JPanel {
     double MIN_DIST = 0;
     boolean showCenters  = false;
     boolean tipHigh      = false;
-    boolean scaleDown    = false;
+    boolean scaleDown    = true;
     boolean firstTime    = true;
     HexCell[] cells;
     double scale = 3/4.0;
     Point mousePos = new Point(0,0);
+    Point scrollPos = new Point(0,0);
     
 
     protected void paintComponent(Graphics g) {
@@ -32,10 +33,11 @@ public class HexTest extends JPanel {
         if(scaleDown) {
             // Draw everything smaller to see all the cells.
             //g2.translate(delta*w, delta*h);
-            g2.translate(mousePos.x, mousePos.y);
+        	g2.translate(scrollPos.x, scrollPos.y);
             g2.scale(scale, scale);
         }
         Rectangle r = getBounds();
+        r.grow(2000, 1400);
         r.grow((int)(R*3/4), (int)(R*3/4));
         if(cells == null) {
             initHexCells(w, h, R, r);
@@ -231,7 +233,7 @@ public class HexTest extends JPanel {
         f.pack();
         f.setLocation(100,100);
         f.setVisible(true);
-        MausHandler mausHandler = test.new MausHandler();
+        MausHandler mausHandler = test.new MausHandler(test.getBounds());
         test.addMouseListener(mausHandler);
         test.addMouseMotionListener(mausHandler);
         test.addMouseWheelListener(mausHandler);
@@ -245,6 +247,12 @@ public class HexTest extends JPanel {
     }
 
     private class MausHandler implements MouseListener, MouseMotionListener, MouseWheelListener {
+    	Rectangle bounds;
+    	
+    	public MausHandler(Rectangle bounds) {
+    		this.bounds = bounds;
+    	}
+    	
     	@Override
         public void mousePressed(MouseEvent e) {
             Point p = e.getPoint();
@@ -273,16 +281,21 @@ public class HexTest extends JPanel {
 		@Override
 		public void mouseMoved(MouseEvent e) {
 			mousePos = e.getPoint();
-			System.out.println(mousePos.x + ", " + mousePos.y);
 		}
 		
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
+			Point p = new Point();
+			p.x = (int) ((e.getX() - scrollPos.x)/ scale);
+			p.y = (int) ((e.getY() - scrollPos.y)/ scale);
+        	scrollPos.x += p.x * scale;
+        	scrollPos.y += p.y * scale;
 			if (e.getWheelRotation() > 0)
 				scale *= 0.9;
 			else
 				scale *= 1.1;
-			System.out.println(scale);
+			scrollPos.x -= p.x * scale;
+			scrollPos.y -= p.y * scale;
 			repaint();
 		}
 
