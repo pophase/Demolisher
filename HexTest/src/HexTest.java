@@ -11,7 +11,6 @@ public class HexTest extends JPanel {
     final static int SIDES = 6;
     double MIN_DIST = 0;
     boolean showCenters  = false;
-    boolean tipHigh      = false;
     boolean scaleDown    = true;
     boolean firstTime    = true;
     HexCell[] cells;
@@ -37,7 +36,7 @@ public class HexTest extends JPanel {
             g2.scale(scale, scale);
         }
         Rectangle r = getBounds();
-        r.grow(2000, 1400);
+        r.grow(500, 300);
         r.grow((int)(R*3/4), (int)(R*3/4));
         if(cells == null) {
             initHexCells(w, h, R, r);
@@ -71,8 +70,9 @@ public class HexTest extends JPanel {
                 getAllPoints(bounds.getCenterX(),
                              bounds.getCenterY(), radius, range);
         cells = new HexCell[list.size()];
+        System.out.println("Amount of cells: " + list.size());
         // For HexCell to find the side that starts at zero degrees.
-        double theta = tipHigh ? -Math.PI/6 : 0;
+        double theta = 0;
         for(int i = 0; i < list.size(); i++) {
             String id = String.valueOf(i);
             Point2D.Double p = list.get(i);
@@ -90,7 +90,7 @@ public class HexTest extends JPanel {
                                   List<Point2D.Double> list) {
         // Collect neighbors clockwise starting at zero degrees.
         String[] ids = new String[SIDES];
-        double thetaInc = tipHigh ? Math.PI/3 : Math.PI/6;
+        double thetaInc = Math.PI/6;
         Point2D.Double center = list.get(index);
         // Make ellipse larger to include the points we're
         // looking for so we can use the intersects method.
@@ -108,7 +108,7 @@ public class HexTest extends JPanel {
                 if(phi < 0.0 && phi < -0.0001) phi += 2*Math.PI;
                 // Index into array found with thetaInc.
                 int j = (int)Math.round(phi/thetaInc);
-                if(!tipHigh) j /= 2;
+                j /= 2;
                 if(j < 0) j += 5;
                 if(j < ids.length) {
                     ids[j] = String.valueOf(i);
@@ -152,7 +152,7 @@ public class HexTest extends JPanel {
         double minDist = center.distance(cx, cy);
         for(int i = 0; i < SIDES; i++) {
             double theta = i*Math.PI/3;
-            if(!tipHigh) theta += Math.PI/6;
+            theta += Math.PI/6;
             double x = cx + radius*Math.cos(theta);
             double y = cy + radius*Math.sin(theta);
             double distance = center.distance(x, y);
@@ -177,7 +177,7 @@ public class HexTest extends JPanel {
     private Path2D.Double getPath(double cx, double cy, double R) {
         Path2D.Double path = new Path2D.Double();
         double thetaInc = 2*Math.PI/SIDES;
-        double theta = tipHigh ? -Math.PI/2 : thetaInc;
+        double theta = thetaInc;
         double x = cx + R*Math.cos(theta);
         double y = cy + R*Math.sin(theta);
         path.moveTo(x, y);
@@ -191,8 +191,8 @@ public class HexTest extends JPanel {
     }
 
     private JPanel getControls() {
-        String[] ids = { "show centers", "tip high", "scale down" };
-        boolean[] state = { showCenters, tipHigh, scaleDown };
+        String[] ids = { "show centers", "scale down" };
+        boolean[] state = { showCenters, scaleDown };
         ActionListener al = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String id = e.getActionCommand();
@@ -204,9 +204,6 @@ public class HexTest extends JPanel {
                     }
                     repaint();
                 } else {
-                    if(id.equals("tip high")) {
-                        tipHigh = selected;
-                    }
                     if(id.equals("scale down")) {
                         scaleDown = selected;
                     }
@@ -233,7 +230,7 @@ public class HexTest extends JPanel {
         f.pack();
         f.setLocation(100,100);
         f.setVisible(true);
-        MausHandler mausHandler = test.new MausHandler(test.getBounds());
+        MausHandler mausHandler = test.new MausHandler();
         test.addMouseListener(mausHandler);
         test.addMouseMotionListener(mausHandler);
         test.addMouseWheelListener(mausHandler);
@@ -247,35 +244,25 @@ public class HexTest extends JPanel {
     }
 
     private class MausHandler implements MouseListener, MouseMotionListener, MouseWheelListener {
-    	Rectangle bounds;
-    	
-    	public MausHandler(Rectangle bounds) {
-    		this.bounds = bounds;
-    	}
+    	    	
+    	boolean dragInProgess = false;
+    	Point mouseDragStart = new Point();
     	
     	@Override
         public void mousePressed(MouseEvent e) {
-            Point p = e.getPoint();
-            if(scaleDown) {
-                double cx = getWidth()/2.0;
-                double cy = getHeight()/2.0;
-                double x = cx + (p.x - cx)/scale;
-                double y = cy + (p.y - cy)/scale;
-                p.setLocation((int)x, (int)y);
-            }
-            for(int i = 0; i < cells.length; i++) {
-                if(cells[i].contains(p)) {
-                    cells[i].toggleSelection();
-                    break;
-                }
-            }
-            repaint();
+    		mouseDragStart = e.getPoint();
+
         }
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			// TODO Auto-generated method stub
-			
+    		dragInProgess = true;		
+    		mousePos = e.getPoint();
+    		scrollPos.x += mousePos.x - mouseDragStart.x;
+    		scrollPos.y += mousePos.y - mouseDragStart.y;
+    		mouseDragStart.x = mousePos.x;
+    		mouseDragStart.y = mousePos.y;
+    		repaint();
 		}
 
 		@Override
@@ -319,8 +306,21 @@ public class HexTest extends JPanel {
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
-			// TODO Auto-generated method stub
-			
+            Point p = e.getPoint();
+            if(scaleDown) {
+                double cx = getWidth()/2.0;
+                double cy = getHeight()/2.0;
+                double x = cx + (p.x - cx)/scale;
+                double y = cy + (p.y - cy)/scale;
+                p.setLocation((int)x, (int)y);
+            }
+            for(int i = 0; i < cells.length; i++) {
+                if(cells[i].contains(p)) {
+                    cells[i].toggleSelection();
+                    break;
+                }
+            }
+            repaint();
 		}
     };
     
