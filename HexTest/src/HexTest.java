@@ -338,7 +338,7 @@ class HexCell {
     boolean showCenter;
     double start;
     String[] neighbors;
-    boolean isSelected = false;
+    boolean isSelected = false; 
 
     public HexCell(String id, Point2D.Double center, Shape shape,
                    boolean showCenter, double start, String[] neighbors) {
