@@ -12,25 +12,36 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public class MapPanel extends JPanel {
 
-	GameModel gameModel;
 	HexCell[] cells;
 
-	Point mousePos;
-	Point scrollPos;
+	Point mousePos = new Point(0, 0);
+	Point scrollPos = new Point(0, 0);
 	double scale = 1.0;
-	AffineTransform at;
+	AffineTransform mapAt;
 
 	public MapPanel(GameModel gameModel) {
-		this.gameModel = gameModel;
 		MapPanelMouseHandler mouseHandler = new MapPanelMouseHandler(this);
 		this.addMouseListener(mouseHandler);
 		this.addMouseMotionListener(mouseHandler);
 		this.addMouseWheelListener(mouseHandler);
-		this.cells = gameModel.getCells();
+		this.cells = gameModel.getHexCellModel().getCells();
+	}
+
+	public Point getPointOnCellMap(Point source) {
+		Point p = new Point();
+		p.x = (int) ((source.getX() - scrollPos.x) / scale);
+		p.y = (int) ((source.getY() - scrollPos.y) / scale);
+		return p;
+	}
+
+	private void updateAffineTransform() {
+		mapAt = AffineTransform.getTranslateInstance(scrollPos.x, scrollPos.y);
+		mapAt.concatenate(AffineTransform.getScaleInstance(scale, scale));
 	}
 
 	public void clickAt(Point point) {
-		HexCell[] cells = gameModel.getCells();
+		// process clicks for hex cells
+		point = getPointOnCellMap(point);
 		for (int i = 0; i < cells.length; i++) {
 			if (cells[i].contains(point)) {
 				cells[i].toggleSelection();
@@ -38,7 +49,6 @@ public class MapPanel extends JPanel {
 			}
 		}
 		repaint();
-		System.out.println("click at " + point.x + ", " + point.y);
 	}
 
 	protected void paintComponent(Graphics g) {
@@ -46,34 +56,30 @@ public class MapPanel extends JPanel {
 		Graphics2D g2 = (Graphics2D) g;
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 				RenderingHints.VALUE_ANTIALIAS_ON);
-		g2.setPaint(Color.blue);
-		g2.draw(getBounds());
 
 		AffineTransform saveAt = g2.getTransform();
-		at = AffineTransform.getTranslateInstance(scrollPos.x, scrollPos.y);
-		at.concatenate(AffineTransform.getScaleInstance(scale, scale));
-		g2.transform(at);
+		if (mapAt == null)
+			updateAffineTransform();
+		g2.transform(mapAt);
 		g2.setPaint(Color.black);
 		Rectangle panelBounds = getBounds();
 		panelBounds.grow(30, 30);
 		for (int i = 0; i < cells.length; i++) {
 			Point transformedCenter = new Point();
-			at.transform(cells[i].center, transformedCenter);
+			mapAt.transform(cells[i].center, transformedCenter);
 			if (panelBounds.contains(transformedCenter)) {
 				cells[i].draw(g2);
 			}
 		}
 
-		g2.transform(saveAt);
-		Point scrolledMousePos = new Point();
-		// Point scaledMousePos = new Point();
-		// scrolledMousePos.x = mousePos.x- scrollPos.x;
-		// scrolledMousePos.y = mousePos.y - scrollPos.y;
-		at.transform(mousePos, scrolledMousePos);
+		Point scrolledMousePos = getPointOnCellMap(mousePos);
 		Rectangle mouseShower = new Rectangle(scrolledMousePos, new Dimension(
 				10, 10));
-		System.out.println(mousePos.x + ", " + mousePos.y);
 		g2.draw(mouseShower);
+
+		g2.setTransform(saveAt);
+		g2.drawString("mouse: " + mousePos.x + ", " + mousePos.y, 10, 20);
+		g2.drawString("scroll: " + scrollPos.x + ", " + scrollPos.y, 10, 40);
 	}
 
 	public Point getMousePos() {
@@ -90,6 +96,7 @@ public class MapPanel extends JPanel {
 
 	public void setScrollPos(Point scrollPos) {
 		this.scrollPos = scrollPos;
+		updateAffineTransform();
 	}
 
 	public double getScale() {
@@ -98,6 +105,7 @@ public class MapPanel extends JPanel {
 
 	public void setScale(double scale) {
 		this.scale = scale;
+		updateAffineTransform();
 	}
 
 }

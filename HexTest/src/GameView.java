@@ -37,7 +37,7 @@ public class GameView extends JFrame {
 
 	private ComponentListener resizeMonitor = new ComponentAdapter() {
 		public void componentResized(ComponentEvent e) {
-			System.out.println("duh!");
+			repaint();
 		}
 	};
 

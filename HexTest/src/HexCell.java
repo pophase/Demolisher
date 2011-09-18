@@ -1,5 +1,6 @@
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -18,6 +19,7 @@ public class HexCell {
 	double start;
 	String[] neighbors;
 	boolean isSelected = false;
+	GradientPaint cellPaint;
 
 	public HexCell(String id, Point2D.Double center, Shape shape,
 			boolean showCenter, double start, String[] neighbors) {
@@ -27,6 +29,8 @@ public class HexCell {
 		this.showCenter = showCenter;
 		this.start = start;
 		this.neighbors = neighbors;
+		cellPaint = new GradientPaint(0f, 0f, Color.black, 0f, 0.5f,
+				Color.white);
 	}
 
 	public void draw(Graphics2D g2) {
@@ -35,6 +39,11 @@ public class HexCell {
 			g2.fill(new Ellipse2D.Double(center.x - 1.5, center.y - 1.5, 4, 4));
 			g2.drawString(id, (float) (center.x + 3), (float) (center.y + 3));
 			g2.setPaint(Color.black);
+		}
+		if (isSelected) {
+			g2.setPaint(cellPaint);
+			g2.fill(shape);
+			g2.setColor(Color.black);
 		}
 		g2.draw(shape);
 		if (isSelected) {

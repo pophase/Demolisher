@@ -15,8 +15,6 @@ public class MapPanelMouseHandler implements MouseListener,
 
 	public MapPanelMouseHandler(MapPanel mapPanel) {
 		this.mapPanel = mapPanel;
-		mapPanel.setMousePos(mousePos);
-		mapPanel.setScrollPos(scrollPos);
 	}
 
 	@Override
@@ -27,32 +25,27 @@ public class MapPanelMouseHandler implements MouseListener,
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		mousePos = e.getPoint();
+		mapPanel.setMousePos(mousePos);
 		scrollPos.x += mousePos.x - mouseDragStart.x;
 		scrollPos.y += mousePos.y - mouseDragStart.y;
 		mouseDragStart.x = mousePos.x;
 		mouseDragStart.y = mousePos.y;
-		mapPanel.setMousePos(mousePos);
+		mapPanel.setScrollPos(scrollPos);
 		mapPanel.repaint();
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		Point p = new Point();
-		double scale = mapPanel.getScale();
-		p.x = (int) ((e.getX() - scrollPos.x) / scale);
-		p.y = (int) ((e.getY() - scrollPos.y) / scale);
-
-		mousePos = p;
-		mapPanel.setMousePos(mousePos);
-		mapPanel.repaint();
+		mapPanel.setMousePos(e.getPoint());
+		mapPanel.repaint(); // temp debug
 	}
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
-		Point p = new Point();
+		Point p = e.getPoint();
 		double scale = mapPanel.getScale();
-		p.x = (int) ((e.getX() - scrollPos.x) / scale);
-		p.y = (int) ((e.getY() - scrollPos.y) / scale);
+		p.x = (int) ((p.getX() - scrollPos.x) / scale);
+		p.y = (int) ((p.getY() - scrollPos.y) / scale);
 		scrollPos.x += p.x * scale;
 		scrollPos.y += p.y * scale;
 		if (e.getWheelRotation() > 0) {
@@ -60,10 +53,10 @@ public class MapPanelMouseHandler implements MouseListener,
 		} else {
 			scale *= 1.1;
 		}
-		System.out.println("scale: " + scale);
 		scrollPos.x -= p.x * scale;
 		scrollPos.y -= p.y * scale;
 		mapPanel.setScale(scale);
+		mapPanel.setScrollPos(scrollPos);
 		mapPanel.repaint();
 	}
 
