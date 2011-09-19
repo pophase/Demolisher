@@ -1,4 +1,18 @@
-public class GameModel {
+package core;
+import hexagon.HexCellModel;
+
+import java.io.Serializable;
+
+/**
+ * @author hypno
+ * @date 19.09.2011
+ */
+public class GameModel implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	HexCellModel hexCellModel;
 

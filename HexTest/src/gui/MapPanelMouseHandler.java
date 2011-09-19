@@ -1,3 +1,4 @@
+package gui;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -5,11 +6,16 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 
+/**
+ * @author hypno
+ * @date 19.09.2011
+ */
 public class MapPanelMouseHandler implements MouseListener,
 		MouseMotionListener, MouseWheelListener {
 
 	MapPanel mapPanel;
 	Point mouseDragStart = new Point();
+	boolean mouseDragged = false;
 	Point mousePos = new Point();
 	Point scrollPos = new Point();
 
@@ -32,6 +38,7 @@ public class MapPanelMouseHandler implements MouseListener,
 		mouseDragStart.y = mousePos.y;
 		mapPanel.setScrollPos(scrollPos);
 		mapPanel.repaint();
+		mouseDragged = true;
 	}
 
 	@Override
@@ -80,6 +87,10 @@ public class MapPanelMouseHandler implements MouseListener,
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		mapPanel.clickAt(e.getPoint());
+		if (!mouseDragged) {
+			mapPanel.clickAt(e.getPoint());
+		} else {
+			mouseDragged = false;
+		}
 	}
 }

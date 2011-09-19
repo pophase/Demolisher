@@ -1,3 +1,5 @@
+package hexagon;
+
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
@@ -9,28 +11,30 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * @author hypno
+ * @date 19.09.2011
+ */
 public class HexCellModel implements Serializable {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
-	public double MIN_DIST = 0;
+
 	public int hexWidth = 320;
 	public int hexHeight = 240;
 	public int mapWidth = 1280;
 	public int mapHeight = 1024;
 	private double R = Math.min(hexWidth, hexHeight) / 8;
+	public double MIN_DIST = R / 4;
 
 	HexCell[] cells;
-	
+
 	public HexCellModel() {
-		MIN_DIST = R / 4;
 		initHexCells(hexWidth, hexHeight, R, new Rectangle(mapWidth, mapHeight));
 	}
-	
+
 	public HexCell[] getCells() {
 		return cells;
 	}
@@ -49,15 +53,14 @@ public class HexCellModel implements Serializable {
 		System.out.println("Amount of cells: " + list.size());
 		// For HexCell to find the side that starts at zero degrees.
 		double theta = 0;
-		for (int i = 0; i < list.size(); i++) {
-			String id = String.valueOf(i);
-			Point2D.Double p = list.get(i);
+		for (int id = 0; id < list.size(); id++) {
+			Point2D.Double p = list.get(id);
 			double x = p.x - w / 2;
 			double y = p.y - h / 2;
 			AffineTransform at = AffineTransform.getTranslateInstance(x, y);
 			Shape s = at.createTransformedShape(path);
-			String[] adjacentIds = getNeighbors(i, radius, list);
-			cells[i] = new HexCell(id, p, s, false, theta, adjacentIds);
+			String[] adjacentIds = getNeighbors(id, radius, list);
+			cells[id] = new HexCell(id, p, s, false, theta, adjacentIds);
 		}
 	}
 
@@ -164,6 +167,5 @@ public class HexCellModel implements Serializable {
 		}
 		return path;
 	}
-
 
 }

@@ -1,3 +1,5 @@
+package hexagon;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GradientPaint;
@@ -11,8 +13,12 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import java.util.Arrays;
 
+/**
+ * @author hypno
+ * @date 19.09.2011
+ */
 public class HexCell {
-	String id;
+	int id;
 	Point2D.Double center;
 	Shape shape;
 	boolean showCenter;
@@ -21,7 +27,7 @@ public class HexCell {
 	boolean isSelected = false;
 	GradientPaint cellPaint;
 
-	public HexCell(String id, Point2D.Double center, Shape shape,
+	public HexCell(int id, Point2D.Double center, Shape shape,
 			boolean showCenter, double start, String[] neighbors) {
 		this.id = id;
 		this.center = center;
@@ -37,7 +43,8 @@ public class HexCell {
 		if (showCenter) {
 			g2.setPaint(Color.red);
 			g2.fill(new Ellipse2D.Double(center.x - 1.5, center.y - 1.5, 4, 4));
-			g2.drawString(id, (float) (center.x + 3), (float) (center.y + 3));
+			g2.drawString(id + "", (float) (center.x + 3),
+					(float) (center.y + 3));
 			g2.setPaint(Color.black);
 		}
 		if (isSelected) {
@@ -94,5 +101,25 @@ public class HexCell {
 	public String toString() {
 		return "HexCell[id:" + id + ", neighbors:" + Arrays.toString(neighbors)
 				+ "]";
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public Point2D.Double getCenter() {
+		return center;
+	}
+
+	public void setCenter(Point2D.Double center) {
+		this.center = center;
+	}
+
+	public boolean isOpen() {
+		return true;
 	}
 }

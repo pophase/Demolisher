@@ -1,3 +1,6 @@
+package gui;
+import hexagon.HexCell;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -9,9 +12,18 @@ import java.awt.geom.AffineTransform;
 
 import javax.swing.JPanel;
 
+import core.GameController;
+import core.GameModel;
+
+/**
+ * @author hypno
+ * @date 19.09.2011
+ */
 @SuppressWarnings("serial")
 public class MapPanel extends JPanel {
 
+	GameModel gameModel;
+	GameController gameController;
 	HexCell[] cells;
 
 	Point mousePos = new Point(0, 0);
@@ -19,14 +31,22 @@ public class MapPanel extends JPanel {
 	double scale = 1.0;
 	AffineTransform mapAt;
 
-	public MapPanel(GameModel gameModel) {
+	public MapPanel(GameModel gameModel, GameController gameController) {
 		MapPanelMouseHandler mouseHandler = new MapPanelMouseHandler(this);
 		this.addMouseListener(mouseHandler);
 		this.addMouseMotionListener(mouseHandler);
 		this.addMouseWheelListener(mouseHandler);
+		this.gameModel = gameModel;
+		this.gameController = gameController;
 		this.cells = gameModel.getHexCellModel().getCells();
 	}
 
+	/**
+	 * Transformiert Bildschirmkoordinaten zu Kartenkoordinaten
+	 * 
+	 * @param source
+	 * @return
+	 */
 	public Point getPointOnCellMap(Point source) {
 		Point p = new Point();
 		p.x = (int) ((source.getX() - scrollPos.x) / scale);
@@ -34,6 +54,10 @@ public class MapPanel extends JPanel {
 		return p;
 	}
 
+	/**
+	 * Aktualisiert die Transformation, die zur Darstellung der Karte verwendet
+	 * wird
+	 */
 	private void updateAffineTransform() {
 		mapAt = AffineTransform.getTranslateInstance(scrollPos.x, scrollPos.y);
 		mapAt.concatenate(AffineTransform.getScaleInstance(scale, scale));
@@ -44,7 +68,7 @@ public class MapPanel extends JPanel {
 		point = getPointOnCellMap(point);
 		for (int i = 0; i < cells.length; i++) {
 			if (cells[i].contains(point)) {
-				cells[i].toggleSelection();
+				gameController.commandCellClicked(i);
 				break;
 			}
 		}
@@ -66,7 +90,7 @@ public class MapPanel extends JPanel {
 		panelBounds.grow(30, 30);
 		for (int i = 0; i < cells.length; i++) {
 			Point transformedCenter = new Point();
-			mapAt.transform(cells[i].center, transformedCenter);
+			mapAt.transform(cells[i].getCenter(), transformedCenter);
 			if (panelBounds.contains(transformedCenter)) {
 				cells[i].draw(g2);
 			}
